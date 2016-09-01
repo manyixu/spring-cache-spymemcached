@@ -10,13 +10,15 @@ public class SpyMemcachedCache extends AbstractValueAdaptingCache {
     private String name;
     private MemcachedClient client;
     private int expire;
+    private String prefix;
 
     protected SpyMemcachedCache(String name, MemcachedClient client,
-            boolean allowNullValues, int expire) {
+            boolean allowNullValues, int expire, String prefix) {
         super(allowNullValues);
         this.name = name;
         this.client = client;
         this.expire = expire;
+        this.prefix = prefix;
     }
 
     @Override
@@ -62,7 +64,8 @@ public class SpyMemcachedCache extends AbstractValueAdaptingCache {
     }
 
     public String cacheKey(Object key) {
-        return String.valueOf(key);
+        return (prefix == null) ? String.valueOf(key)
+                                : prefix.concat(String.valueOf(key));
     }
 }
 

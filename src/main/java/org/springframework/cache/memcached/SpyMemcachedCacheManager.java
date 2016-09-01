@@ -22,9 +22,9 @@ public class SpyMemcachedCacheManager extends AbstractCacheManager {
     private static final int DEFAULT_EXPIRE = 0;
 
     private Collection<? extends Cache> initialCaches;
-
     private Map<String, Integer> expires;
-
+    private boolean usePrefix = false;
+    private CachePrefix cachePrefix;
     private MemcachedClient client;
 
     public SpyMemcachedCacheManager() {
@@ -49,6 +49,14 @@ public class SpyMemcachedCacheManager extends AbstractCacheManager {
         this.expires = expires;
     }
 
+    public void setUsePrefix(boolean usePrefix) {
+        this.usePrefix = usePrefix;
+    }
+
+    public void setCachePrefix(CachePrefix cachePrefix) {
+        this.cachePrefix = cachePrefix;
+    }
+
     @Autowired
     public void setClient(MemcachedClient client) {
         this.client = client;
@@ -57,7 +65,8 @@ public class SpyMemcachedCacheManager extends AbstractCacheManager {
     @Override
     protected Cache getMissingCache(String name) {
         int expire = checkExpire(name);
-        return new SpyMemcachedCache(name, client, false, expire);
+        return new SpyMemcachedCache(name, client, false, expire,
+                                     usePrefix ? cachePrefix.prefix(name) : null);
     }
 
     private int checkExpire(String name) {
@@ -72,6 +81,10 @@ public class SpyMemcachedCacheManager extends AbstractCacheManager {
             if (logger.isTraceEnabled()) {
                 logger.trace("No expire configured");
             }
+        }
+
+        if (usePrefix && cachePrefix == null) {
+            cachePrefix = new DefaultCachePrefix();
         }
 
         super.afterPropertiesSet();
